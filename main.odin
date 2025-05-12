@@ -117,6 +117,8 @@ quadtree_entity_insert :: proc(entity: Entity, qtree: ^QuadTree) {
             }
             ordered_remove(&qtree.entities, i)
         }
+        // resize_dynamic_array(&qtree.entities, 0)
+        qtree.entities = nil
 
         for child in qtree_children {
             quadtree_entity_insert(entity, child)
@@ -171,15 +173,14 @@ free_quadtree :: proc(qtree: ^QuadTree) {
         free_quadtree(qtree.topRight)
         free_quadtree(qtree.bottomLeft)
         free_quadtree(qtree.bottomRight)
-    } else {
-        clear(&qtree.entities)
+    }  else {
+        delete_dynamic_array(qtree.entities)
     }
     if qtree.name == "root" {
         divide_quadtree(qtree)
 
         return
     }
-    // clear(&qtree.entities)
     free(qtree)
 }
 
@@ -232,7 +233,7 @@ main :: proc() {
 
     for !rl.WindowShouldClose() {
         tick += 1
-        if tick % 60 == 0 {
+        if tick == 60 {
             for entity in entity_array {
                 quadtree_entity_insert(entity, &qtree)
             }
@@ -245,7 +246,7 @@ main :: proc() {
             rl.DrawCircleV(entity_array[i].position, 2, entity_array[i].color)
         }
         draw_quadtree(&qtree)
-        if tick %59 == 0 {
+        if tick == 59 {
             set_clear = true
         }
 

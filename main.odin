@@ -45,7 +45,7 @@ init_entity:: proc(i: int, count: int) -> Entity {
 
     entity.position.x = f32(rl.GetRandomValue(0, window_width))
     entity.position.y = f32(rl.GetRandomValue(0, window_height))
-    entity.color = {rg, 128, 128, 255}
+    entity.color = {rg, 127, 127, 255}
     entity.number = i
 
     return entity
@@ -220,7 +220,7 @@ main :: proc() {
     prime_bbox.width = f32(window_width)
     prime_bbox.height = f32(window_height)
     
-    entity_count := 100
+    entity_count := 50
     entity_array : [dynamic]Entity
     tick := 0
     qtree := init_root_quadtree(prime_bbox)

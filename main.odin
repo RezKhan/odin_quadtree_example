@@ -35,17 +35,12 @@ QuadTree :: struct {
     bottomRight: ^QuadTree,
 }
 
-init_entity:: proc(i: int, count: int) -> Entity {
+init_entity:: proc(i: int) -> Entity {
     entity := Entity{}
-    steps := int(math.floor_div(255, count)) 
-    if steps < 1 {
-        steps = 1
-    }
-    rg := u8((i * steps) + 5)
 
     entity.position.x = f32(rl.GetRandomValue(0, window_width))
     entity.position.y = f32(rl.GetRandomValue(0, window_height))
-    entity.color = {rg, 127, 127, 255}
+    entity.color = {220, 127, 127, 255}
     entity.number = i
 
     return entity
@@ -149,11 +144,11 @@ draw_quadtree :: proc(qtree: ^QuadTree) {
     if len(qtree.entities) < 1 {
         rl.DrawRectangleLines(i32(qtree.bounds.center.x - (qtree.bounds.width / 2)), 
             i32(qtree.bounds.center.y - (qtree.bounds.height / 2)), 
-            i32(qtree.bounds.width), i32(qtree.bounds.height), {255, 255, 255, 255})
+            i32(qtree.bounds.width), i32(qtree.bounds.height), {255, 255, 255, 45})
     } else {
         rl.DrawRectangleLines(i32(qtree.bounds.center.x - (qtree.bounds.width / 2)), 
         i32(qtree.bounds.center.y - (qtree.bounds.height / 2)), 
-        i32(qtree.bounds.width), i32(qtree.bounds.height), qtree.entities[0].color)// {248, 180, 0, 255})
+        i32(qtree.bounds.width), i32(qtree.bounds.height), {248, 180, 0, 255})
     }
 
     if qtree.divided {
@@ -177,7 +172,15 @@ free_quadtree :: proc(qtree: ^QuadTree) {
         delete_dynamic_array(qtree.entities)
     }
     if qtree.name == "root" {
-        divide_quadtree(qtree)
+        // root takes extra handling
+        qtree.topLeft = nil
+        qtree.topRight = nil
+        qtree.bottomLeft = nil
+        qtree.bottomRight = nil
+        free(qtree.topLeft)
+        free(qtree.topRight)
+        free(qtree.bottomLeft)
+        free(qtree.bottomRight)
 
         return
     }
@@ -185,7 +188,7 @@ free_quadtree :: proc(qtree: ^QuadTree) {
 }
 
 print_quadtree :: proc(qtree: ^QuadTree) {
-    fmt.println("Quadtree:", qtree.name, "Divided: ", qtree.divided)
+    fmt.println("Quadtree:", qtree.name, "Divided: ", qtree.divided, "Entities: ", qtree.entities)
     if qtree.divided {
         print_quadtree(qtree.topLeft)
         print_quadtree(qtree.topRight)
@@ -225,7 +228,7 @@ main :: proc() {
     tick := 0
     qtree := init_root_quadtree(prime_bbox)
     for i in 0..<entity_count {
-        entity := init_entity(i, entity_count)
+        entity := init_entity(i)
         append(&entity_array, entity)
         quadtree_entity_insert(entity, &qtree)
     }
@@ -253,9 +256,12 @@ main :: proc() {
         rl.EndDrawing()
         if set_clear {
             free_quadtree(&qtree)
+            divide_quadtree(&qtree)
             set_clear = false
         }
     }
-
     rl.CloseWindow()
+
+    free_quadtree(&qtree)
+    print_quadtree(&qtree)
 }
